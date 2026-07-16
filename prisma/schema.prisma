@@ -1,12 +1,11 @@
-// ShareBoard — clean-room demo schema.
-// SQLite locally for zero-setup; swap `provider` to "postgresql" for Neon/Vercel.
+// ShareBoard — clean-room demo schema. Postgres (Neon) in every environment.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
