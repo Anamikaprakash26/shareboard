@@ -11,6 +11,12 @@ raw IP address.**
 > shipped during a real placement, rebuilt from scratch with a generic domain and
 > entirely synthetic seed data. It contains no company code or data.
 
+**▶ Live demo:** https://shareboard-anamikaprakash26s-projects.vercel.app
+
+![Admin dashboard — per-link view/visitor analytics, a hashed-visitor table, and AI response summaries](docs/admin.png)
+
+![Home page — public share links](docs/home.png)
+
 ---
 
 ## What it does
