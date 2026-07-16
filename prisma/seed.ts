@@ -63,6 +63,23 @@ async function main() {
     })
   }
 
+  // Seed sample responses on "q3-notes" so the AI summary has something to work with.
+  const q3 = await prisma.sharedLink.findUnique({ where: { slug: 'q3-notes' } })
+  if (q3) {
+    const sampleResponses = [
+      'Really clear write-up, the timeline finally makes sense to me.',
+      'I think the Q3 goals are a bit too ambitious given the team size.',
+      'Love the direction. Can we add more detail on the budget though?',
+      'Agree with the person worried about scope — we said the same last quarter.',
+      'The privacy approach (hashing IPs) is a nice touch, good call.',
+      'Timeline looks tight but doable if we cut the nice-to-haves.',
+      'Not sure about the ambitious goals either, but excited to try.',
+    ]
+    for (const body of sampleResponses) {
+      await prisma.response.create({ data: { sharedLinkId: q3.id, body } })
+    }
+  }
+
   console.log('Seeded ShareBoard ✓')
 }
 

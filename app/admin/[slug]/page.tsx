@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
+import SummaryPanel from './summary-panel'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +13,10 @@ export default async function AdminDetail({
   const { slug } = await params
   const link = await prisma.sharedLink.findUnique({
     where: { slug },
-    include: { views: { orderBy: { lastSeenAt: 'desc' } } },
+    include: {
+      views: { orderBy: { lastSeenAt: 'desc' } },
+      responses: { orderBy: { createdAt: 'desc' } },
+    },
   })
   if (!link) notFound()
 
@@ -69,6 +73,28 @@ export default async function AdminDetail({
               ))}
             </tbody>
           </table>
+        )}
+      </div>
+
+      <div className="card">
+        <h2>Responses ({link.responses.length})</h2>
+        <SummaryPanel slug={link.slug} />
+        {link.responses.length === 0 ? (
+          <p className="muted">
+            No responses yet. Leave one on{' '}
+            <Link href={`/s/${link.slug}`}>the public link</Link>.
+          </p>
+        ) : (
+          <ul className="responses">
+            {link.responses.map((r) => (
+              <li key={r.id}>
+                <span className="body">{r.body}</span>
+                <span className="muted small">
+                  {r.createdAt.toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </main>

@@ -33,10 +33,10 @@ export default async function SharePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; thanks?: string }>
 }) {
   const { slug } = await params
-  const { error } = await searchParams
+  const { error, thanks } = await searchParams
 
   const link = await prisma.sharedLink.findUnique({ where: { slug } })
   if (!link) notFound()
@@ -72,6 +72,29 @@ export default async function SharePage({
         <h1>{link.title}</h1>
         <div className="body">{link.body}</div>
       </article>
+      <section className="card">
+        <h2>Leave a response</h2>
+        {thanks ? (
+          <p className="muted small">Thanks — your response was recorded.</p>
+        ) : null}
+        <form
+          method="post"
+          action={`/api/s/${link.slug}/respond`}
+          className="respond-form"
+        >
+          <textarea
+            name="response"
+            rows={3}
+            maxLength={500}
+            placeholder="Share a quick thought…"
+            required
+          />
+          <button type="submit" className="btn">
+            Send
+          </button>
+        </form>
+      </section>
+
       <p className="muted small">
         You are viewing a public share link. Views are counted anonymously — no
         login, and no raw IP is ever stored.

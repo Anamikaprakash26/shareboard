@@ -19,8 +19,9 @@ raw IP address.**
 - Each open is counted: a **total view count** and, separately, the number of
   **unique visitors**.
 - Some links are **password-gated** — no view is counted until they're unlocked.
-- An **admin dashboard** at `/admin` shows per-link analytics and a per-visitor
-  breakdown.
+- Visitors can **leave a short response** on a link.
+- An **admin dashboard** at `/admin` shows per-link analytics, a per-visitor
+  breakdown, and an **AI summary** of the responses.
 
 ## The engineering worth looking at
 
@@ -31,11 +32,13 @@ raw IP address.**
 | **Privacy** | The raw IP is **never stored**. It's read from proxy headers and immediately reduced to a salted SHA-256 hash. | `lib/ip.ts` |
 | **Unique vs. total** | Total views live on `SharedLink.viewCount`; uniqueness is a `@@unique([sharedLinkId, visitorId])` constraint on `LinkView`, upserted per visitor. | `prisma/schema.prisma` |
 | **Password gate** | scrypt hashing with a constant-time compare (no external dep); an unlock cookie gates content **and** view-counting. | `lib/password.ts`, `app/api/s/[slug]/unlock/route.ts` |
+| **AI summary (prompt-injection hardened)** | Deterministic response count **plus** an LLM narrative that sanitizes and JSON-quotes untrusted respondent text, tells the model to treat quoted content as untrusted, budgets the digest, sets a timeout, and **falls back to the count if the AI call fails or no key is set**. | `lib/ai-summary.ts`, `app/api/admin/s/[slug]/summary/route.ts` |
 
 ## Stack
 
 Next.js 15 (App Router, Server Components, Route Handlers, middleware, `after()`)
-· TypeScript · Prisma ORM · **Postgres** (Neon) · deployed on **Vercel**.
+· TypeScript · Prisma ORM · **Postgres** (Neon) · the **Anthropic SDK** (Claude)
+for the AI summary · deployed on **Vercel**.
 
 ## Run it locally
 
@@ -57,6 +60,8 @@ npm run dev             # http://localhost:3000
 3. In **Settings → Environment Variables**, add:
    - `DATABASE_URL` — your Neon connection string
    - `IP_HASH_SALT` — any long random string
+   - `ANTHROPIC_API_KEY` — *optional*; enables live AI summaries (without it, the
+     summary panel shows the deterministic response count)
 4. Deploy. The `vercel-build` script runs `prisma migrate deploy`, so the schema
    is created on the first deploy.
 5. Seed the demo data once, locally pointed at Neon: `npm run seed`.

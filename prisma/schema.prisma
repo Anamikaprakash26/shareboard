@@ -19,6 +19,18 @@ model SharedLink {
   viewCount    Int        @default(0) // total views (every open)
   createdAt    DateTime   @default(now())
   views        LinkView[]
+  responses    Response[]
+}
+
+/// A short anonymous response left by a visitor on a shared link.
+model Response {
+  id           String     @id @default(cuid())
+  sharedLink   SharedLink @relation(fields: [sharedLinkId], references: [id], onDelete: Cascade)
+  sharedLinkId String
+  body         String
+  createdAt    DateTime   @default(now())
+
+  @@index([sharedLinkId])
 }
 
 /// One row per (link, anonymous visitor). Row count = unique visitors.
