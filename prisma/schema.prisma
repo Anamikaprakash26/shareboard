@@ -1,0 +1,38 @@
+// ShareBoard — clean-room demo schema.
+// SQLite locally for zero-setup; swap `provider` to "postgresql" for Neon/Vercel.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A publicly shareable link/document.
+model SharedLink {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  title        String
+  body         String
+  passwordHash String? // null = public; set = password-gated
+  viewCount    Int        @default(0) // total views (every open)
+  createdAt    DateTime   @default(now())
+  views        LinkView[]
+}
+
+/// One row per (link, anonymous visitor). Row count = unique visitors.
+model LinkView {
+  id           String     @id @default(cuid())
+  sharedLink   SharedLink @relation(fields: [sharedLinkId], references: [id], onDelete: Cascade)
+  sharedLinkId String
+  visitorId    String // from the first-party visitor cookie
+  ipHash       String? // salted hash of the IP — never the raw IP
+  hits         Int        @default(1)
+  firstSeenAt  DateTime   @default(now())
+  lastSeenAt   DateTime   @default(now())
+
+  @@unique([sharedLinkId, visitorId])
+  @@index([sharedLinkId])
+}
